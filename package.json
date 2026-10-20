@@ -1,0 +1,21 @@
+{
+  "name": "pintarkeuangan",
+  "version": "1.0.0",
+  "description": "pintarkeuangan - 100% data milik anda",
+  "main": "build.js",
+  "scripts": {
+    "build:all": "node build.js --target=all",
+    "build:personal": "node build.js --target=personal",
+    "build:personal-pro": "node build.js --target=personal-pro",
+    "build:club": "node build.js --target=club",
+    "build:umkm": "node build.js --target=umkm",
+    "push:personal": "node build.js --target=personal && clasp push",
+    "push:personal-pro": "node build.js --target=personal-pro && clasp push",
+    "push:club": "node build.js --target=club && clasp push",
+    "push:umkm": "node build.js --target=umkm && clasp push"
+  },
+  "devDependencies": {
+    "@google/clasp": "^2.4.2",
+    "fs-extra": "^11.1.1"
+  }
+}

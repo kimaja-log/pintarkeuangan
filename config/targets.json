@@ -1,0 +1,30 @@
+{
+  "personal": {
+    "scriptId": "1lXVHScEPPcbF2m85oXbNnmhrnhaOJrpBeLFt-rWBIm5hMl46UNdvfe4y",
+    "enableAI": false,
+    "enablePlanner": false,
+    "enableMultiWallet": false,
+    "enableExport": false
+  },
+  "personal-pro": {
+    "scriptId": "1pJEEiGsQzWwUua6bqhwgv-xCSpJ-UuN9jsz6p0uX_3PakN5kmoa7kMPk",
+    "enableAI": true,
+    "enablePlanner": true,
+    "enableMultiWallet": false,
+    "enableExport": false
+  },
+  "club": {
+    "scriptId": "1J1DOR7A2H1WnznZQ4GOCOQyGDMy3mGUlSXlSrm1N13XkQ7oV9WYTxjlT",
+    "enableAI": false,
+    "enablePlanner": false,
+    "enableMultiWallet": false,
+    "enableExport": true
+  },
+  "umkm": {
+    "scriptId": "1hdzwASytgoNnQg-91ltCmT2fFAjyum9ZBc-dCLGYCn222VmKihLzgX9Y",
+    "enableAI": true,
+    "enablePlanner": false,
+    "enableMultiWallet": true,
+    "enableExport": true
+  }
+}

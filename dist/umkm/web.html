@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MonlyAi - UMKM</title>
+  <script src="https://tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cloudflare.com">
+  <style>
+  
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans">
+  <div class="max-w-6xl mx-auto p-4 space-y-6">
+  <!-- Hero Banner -->
+  <section class="bg-blue-600 text-white p-8 rounded-3xl shadow-xl flex flex-col items-center text-center">
+    <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4 border border-white/30">
+      <i class="fa-solid fa-robot text-2xl text-white"></i>
+    </div>
+    <h1 class="text-2xl md:text-3xl font-bold mb-2">Asisten Keuangan Harian Anda</h1>
+    <p class="text-blue-100 text-sm max-w-xl mb-6">
+      Ketik atau bicarakan transaksi Anda secara bebas, dan sistem akan langsung mencatatnya ke Google Sheets.
+    </p>
+
+    <!-- Prompt Box -->
+    <div class="w-full max-w-xl bg-white rounded-2xl p-2 shadow-2xl flex items-center gap-2 text-slate-800">
+      <input id="promptInput" type="text" placeholder="Contoh: Beli makan siang Rp 25.000" class="flex-1 px-4 py-2 text-sm bg-transparent outline-none">
+      <button id="micBtn" onclick="toggleVoiceInput()" class="p-2 text-slate-400 hover:text-blue-600 transition">
+        <i class="fa-solid fa-microphone text-lg"></i>
+      </button>
+      <button onclick="submitTransaction()" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center transition">
+        <i class="fa-solid fa-paper-plane text-sm"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+      <p class="text-xs text-slate-400 font-semibold uppercase">Total Pemasukan</p>
+      <h3 id="totalMasuk" class="text-2xl font-bold text-emerald-600 mt-1">Rp 0</h3>
+    </div>
+    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+      <p class="text-xs text-slate-400 font-semibold uppercase">Total Pengeluaran</p>
+      <h3 id="totalKeluar" class="text-2xl font-bold text-rose-600 mt-1">Rp 0</h3>
+    </div>
+    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+      <p class="text-xs text-slate-400 font-semibold uppercase">Saldo Bersih</p>
+      <h3 id="saldoBersih" class="text-2xl font-bold text-cyan-600 mt-1">Rp 0</h3>
+    </div>
+  </div>
+</div>
+  <script>
+  const PRODUCT_CONFIG = {"scriptId":"1hdzwASytgoNnQg-91ltCmT2fFAjyum9ZBc-dCLGYCn222VmKihLzgX9Y","enableAI":true,"enablePlanner":false,"enableMultiWallet":true,"enableExport":true};
+  let recognition = null;
+let isListening = false;
+
+// Inisialisasi Web Speech API (Mikrofon Bahasa Indonesia)
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'id-ID';
+  recognition.continuous = false;
+
+  recognition.onresult = function(event) {
+    const transcript = event.results[0][0].transcript;
+    document.getElementById('promptInput').value = transcript;
+    stopListening();
+  };
+
+  recognition.onerror = function() { stopListening(); };
+  recognition.onend = function() { stopListening(); };
+}
+
+function toggleVoiceInput() {
+  if (!recognition) {
+    alert("Browser tidak mendukung perekam suara. Gunakan Chrome atau Edge.");
+    return;
+  }
+  if (isListening) {
+    recognition.stop();
+    stopListening();
+  } else {
+    recognition.start();
+    startListening();
+  }
+}
+
+function startListening() {
+  isListening = true;
+  const btn = document.getElementById('micBtn');
+  if (btn) btn.classList.add('text-rose-500', 'animate-pulse');
+}
+
+function stopListening() {
+  isListening = false;
+  const btn = document.getElementById('micBtn');
+  if (btn) btn.classList.remove('text-rose-500', 'animate-pulse');
+}
+
+// Ambil URL API dari Query Parameter URL atau Config Global
+const urlParams = new URLSearchParams(window.location.search);
+const API_URL = urlParams.get('api_url') || (typeof PRODUCT_CONFIG !== 'undefined' ? PRODUCT_CONFIG.apiUrl : '');
+
+async function loadData() {
+  if (!API_URL) return;
+  try {
+    const res = await fetch(API_URL);
+    const json = await res.json();
+    if (json.status === "success" && json.data) {
+      renderDashboard(json.data);
+    }
+  } catch (err) {
+    console.error("Gagal memuat data:", err);
+  }
+}
+
+function renderDashboard(data) {
+  let masuk = 0, keluar = 0;
+  data.forEach(row => {
+    const val = Number(row.nominal) || 0;
+    if (row.jenis === "Pemasukan" || row.jenis === "Omzet") masuk += val;
+    else keluar += val;
+  });
+
+  const totalMasukEl = document.getElementById("totalMasuk");
+  const totalKeluarEl = document.getElementById("totalKeluar");
+  const saldoBersihEl = document.getElementById("saldoBersih");
+
+  if (totalMasukEl) totalMasukEl.innerText = `Rp ${masuk.toLocaleString('id-ID')}`;
+  if (totalKeluarEl) totalKeluarEl.innerText = `Rp ${keluar.toLocaleString('id-ID')}`;
+  if (saldoBersihEl) saldoBersihEl.innerText = `Rp ${(masuk - keluar).toLocaleString('id-ID')}`;
+}
+
+async function submitTransaction() {
+  const input = document.getElementById("promptInput");
+  const text = input.value.trim();
+  if (!text || !API_URL) return;
+
+  // Ekstraksi nominal sederhana dari kalimat
+  const numbers = text.match(/\d+/g);
+  const nominal = numbers ? parseInt(numbers.join('')) : 0;
+
+  if (nominal === 0) {
+    alert("Nominal angka tidak terdeteksi dalam kalimat.");
+    return;
+  }
+
+  const payload = {
+    action: "add",
+    tanggal: new Date().toISOString().split('T')[0],
+    jenis: "Pengeluaran",
+    kategori: "Lainnya",
+    nominal: nominal,
+    keterangan: text
+  };
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(payload)
+    });
+    input.value = "";
+    alert("Transaksi berhasil dicatat!");
+    loadData();
+  } catch (err) {
+    alert("Gagal menyimpan transaksi!");
+  }
+}
+
+window.onload = loadData;
+
+  </script>
+</body>
+</html>
